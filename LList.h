@@ -25,12 +25,27 @@ private:
 	LList<T>* tail;
 
 	/* ------- Private Methods -------- */
-	void copy(const LList&);
+	void copy(const LList<T>&);
+	void clear();
+	LListIterator<T> findPrevious(LListIterator<T>);
 
 public:
 	/* ------- Public Methods ------- */
 	LList();
-	LList(const LList&);
+	LList(const LList<T>&);
+	LList<T>& operator=(const LList<T>&);
+	~LList();
+	bool empty() const;
+	bool insertAfter(const T&, LListIterator<T>);
+	bool insertBefore(const T&, LListIterator<T>);
+	bool deleteAfter(T&, LListIterator<T>);
+	void insertTail(const T&);
+	bool deleteTail(T&);
+	
+
+	LListIterator<T> begin() const;
+	LListIterator<T> end() const;
+
 
 };
 
@@ -39,8 +54,29 @@ public:
 template<typename T>
 void LList<T>::copy(const LList<T>& other) {
 	for (LListIterator<T> iter = other.begin(); iter; iter++) {
-		insertEnd(*iter);
+		insertTail(*iter);
 	}
+}
+
+
+template<typename T>
+void LList<T>::clear() {
+	while (!empty()) {
+		T tmp;
+		deleteTail(tmp);
+	}
+}
+
+
+template<typename T>
+LListIterator<T> LList<T>::findPrevious(LListIterator<T> iter) {
+	LListIterator<T> prev = begin();
+
+	while (prev && prev.ptr->next != iter.ptr) {
+		prev++;
+	}
+
+	return prev;
 }
 
 
@@ -49,6 +85,133 @@ template<typename T>
 LList<T>::LList() : head(nullptr), tail(nullptr) {}
 
 
+template<typename T>
+LList<T>::LList(const LList<T>& other) {
+	head = nullptr;
+	tail = nullptr;
+
+	copy(other);
+}
+
+
+template<typename T>
+LList<T>& LList<T>::operator=(const LList<T>& other) {
+	if (this != &other) {
+		clear();
+		copy(other);
+	}
+
+	return *this;
+}
+
+
+template<typename T>
+LList<T>::~LList() {
+	clear();
+}
+
+
+template<typename T>
+bool LList<T>::empty() const {
+	return (head == nullptr && tail == nullptr);
+}
+
+
+template<typename T>
+bool LList<T>::insertAfter(const T& newElem, LListIterator<T> iter) {
+
+	//checks if the given list is empty or not
+	if (iter.ptr == nullptr && empty()) {
+		head = new Node<T>(newElem);
+		tail = head;
+
+		return true;
+	}
+	else if(!iter){
+		return false;
+	}
+
+	Node<T>* toAdd = new Node<T>(newElem, iter.ptr->next);
+	iter.ptr->next = toAdd;
+	
+	if (list == end()) {
+		tail = toAdd;
+	}
+
+	return true;
+}
+
+
+template<typename T>
+bool LList<T>::insertBefore(const T& newElem, LListIterator<T> iter) {
+	//checks if the iterator is pointing to the first element of the given list
+	if (iter == begin()) {
+		Node<T>* toAdd = new Node<T>(newElem, head);
+		
+		//checks if the given list is empty and when it is a nullpointer iterator
+		if (empty()) {
+			tail = toAdd;
+		}
+		head = toAdd;
+		return true;
+	}
+
+	if (!iter || empty()) {
+		return false;
+	}
+
+	//Executing this when iterator is valid and our list is not empty.
+	//Also the iterator is not pointing to the first element.
+
+	return insertAfter(newElem, findPrevious(iter));
+}
+
+
+template<typename T>
+bool LList<T>::deleteAfter(T& toDel, LListIterator<T> iter) {
+	if (!iter || iter == end() || empty()) {
+		return false;
+	}
+
+	//when the iterator is valid -> is not pointing to the last element
+	//and there are at least two elements in the given list
+
+	Node<T>* tmpDel = iter.ptr->next;
+	it.ptr->next = it.ptr->next->next;
+	toDel = tmpDel;
+
+	if (tmpDel->next == nullptr) {
+		tail = iter.ptr;
+	}
+
+	delete tmpDel;
+
+	return true;
+}
+
+
+template<typename T>
+void LList<T>::insertTail(const T& newElem) {
+	insertAfter(newElem, end());
+}
+
+
+template<typename T>
+bool LList<T>::deleteTail(T& toDel) {
+	return deleteAt(toDel, end());
+}
+
+
+template<typename T>
+LListIterator<T> LList<T>::begin() const {
+	return LListIterator<T>(head);
+}
+
+
+template<typename T>
+LListIterator<T> LList<T>::end() const {
+	return LListIterator<T>(tail);
+}
 
 
 /* ------- Iterator -------*/
