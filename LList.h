@@ -1,7 +1,7 @@
 #pragma once
 #include<iostream>
 #include<fstream>
-using namespace std;
+
 
 template<typename T>
 struct Node {
@@ -48,7 +48,7 @@ public:
 	bool deleteBegin(T&);
 	bool deleteTail(T&);
 	LList<T>& operator+=(const T&);
-	void print(std::ostream& out = cout) const {
+	void print(std::ostream& out = std::cout) const {
 		out << '(';
 		for (LListIterator<T> iter = begin(); iter; ++iter) {
 			out << *iter;
