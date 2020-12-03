@@ -64,6 +64,29 @@ Stack<T>::Stack() {
 
 
 template<typename T>
+Stack<T>::Stack(const Stack<T>& other) {
+	copy(other.top);
+}
+
+
+template<typename T>
+Stack<T>& Stack<T>::operator=(const Stack<T>& other) {
+	if (this != &other) {
+		eraseStack();
+		copy(other.top);
+	}
+
+	return *this;
+}
+
+
+template<typename T>
+Stack<T>::~Stack() {
+	eraseStack();
+}
+
+
+template<typename T>
 void Stack<T>::push(const T& newElem) {
 	Node<T>* toAdd = new Node<T>;
 	(*toAdd).data = newElem;
@@ -104,4 +127,11 @@ T& Stack<T>::peek() const {
 	}
 
 	return top->data;
+}
+
+
+template<typename T>
+Stack<T>& Stack<T>::operator+=(const T& newElem) {
+	push(newElem);
+	return *this;
 }
