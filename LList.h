@@ -1,6 +1,7 @@
 #pragma once
 #include<iostream>
 #include<fstream>
+using namespace std;
 
 template<typename T>
 struct Node {
@@ -159,7 +160,7 @@ bool LList<T>::insertAfter(const T& newElem, LListIterator<T> iter) {
 	Node<T>* toAdd = new Node<T>(newElem, iter.ptr->next);
 	iter.ptr->next = toAdd;
 	
-	if (list == end()) {
+	if (iter == end()) {
 		tail = toAdd;
 	}
 
@@ -202,7 +203,7 @@ bool LList<T>::deleteAfter(T& toDel, LListIterator<T> iter) {
 	//and there are at least two elements in the given list
 
 	Node<T>* tmpDel = iter.ptr->next;
-	it.ptr->next = it.ptr->next->next;
+	iter.ptr->next = iter.ptr->next->next;
 	toDel = tmpDel;
 
 	if (tmpDel->next == nullptr) {
@@ -221,7 +222,7 @@ bool LList<T>::deleteAt(T& toDel, LListIterator<T> iter) {
 		return false;
 	}
 
-	if (it == begin()) {
+	if (iter == begin()) {
 		Node<T>* tmpDel = head;
 		head = head->next;
 
@@ -234,7 +235,7 @@ bool LList<T>::deleteAt(T& toDel, LListIterator<T> iter) {
 		return true;
 	}
 
-	return deleteAfter(x, findPrevious(iter));
+	return deleteAfter(toDel, findPrevious(iter));
 }
 
 
@@ -293,7 +294,7 @@ template<typename T>
 void LList<T>::append(LList<T>& other) {
 	if (!empty()) {
 		tail->next = other.head;
-		if (!ther.empty()) {
+		if (!other.empty()) {
 			tail = other.tail;
 		}
 	}
@@ -378,7 +379,7 @@ void LList<T>::reverse(LList<T>& list) {
 template<typename T>
 void LList<T>::split(const LList<T>& list, LList<T>& list1, LList<T>& list2) {
 	LList<T>* addFirst = &list1;
-	LLisT<T>* addLast = &list2;
+	LList<T>* addLast = &list2;
 
 	for (LListIterator<T> iter = list.begin(); iter; ++iter) {
 		(*addFirst).insertTail(*iter);
@@ -429,7 +430,7 @@ void LList<T>::mergeSort(LList<T>& list) {
 	split(list, list1, list2);
 
 	mergeSort(list1);
-	mergeSort(lsit2);
+	mergeSort(list2);
 
 	list = merge(list1, list2);
 }
