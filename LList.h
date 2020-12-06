@@ -1,398 +1,264 @@
 #pragma once
-#include<iostream>
-#include<fstream>
+#include <iostream>
+using namespace std;
 
-
-template<typename T>
+template <typename T>
 struct Node {
 	T data;
-	Node<T>* next;
+	Node* next;
 
-	Node(const T& newData, Node<T>* newNext = nullptr) {
-		data = newData;
-		next = newNext;
+	Node(const T& data, Node* next = nullptr) {
+		this->data = data;
+		this->next = next;
 	}
 };
 
+template <typename T>
+class LListitererator;
 
-/* -------- Iterator -------- */
-template<typename>
-class LListIterator;
-
-template<typename T>
-class LList{
+template <typename T>
+class LList {
 private:
-	LList<T>* head;
-	LList<T>* tail;
+	Node<T>* head;
+	Node<T>* tail;
 
-	/* ------- Private Methods -------- */
-	void copy(const LList<T>&);
-	void clear();
-	LListIterator<T> findPrevious(LListIterator<T>);
+	void copy(const LList& l) {
+		for (LListitererator<T> iter = l.begin(); iter; iter++)
+			this->insertTail(*iter);
+	}
+
+	void clear() {
+		while (!isEmpty()) {
+			T tmp;
+			this->deleteTail(tmp);
+		}
+	}
+
+	LListitererator<T> findPrevious(LListitererator<T> iter) {
+		LListitererator<T> previous = begin();
+		while (previous && previous.ptr->next != iter.ptr)
+			previous++;
+		return previous;
+	}
 
 public:
-	/* ------- Public Methods ------- */
-	LList();
-	LList(const LList<T>&);
-	LList<T>& operator=(const LList<T>&);
-	~LList();
-	bool empty() const;
-	bool insertAfter(const T&, LListIterator<T>);
-	bool insertBefore(const T&, LListIterator<T>);
-	bool deleteAfter(T&, LListIterator<T>);
-	bool deleteAt(T&, LListIterator<T>);
-	bool deleteBefore(T&, LListIterator<T>);
-	T& getAt(LListIterator<T>) const;
-	void insertBegin(const T&);
-	void insertTail(const T&);
-	bool deleteBegin(T&);
-	bool deleteTail(T&);
-	LList<T>& operator+=(const T&);
-	void print(std::ostream& out = std::cout) const {
+
+	LList() : head(nullptr), tail(nullptr) {}
+
+	LList(const LList& l) : head(nullptr), tail(nullptr) { copy(l); }
+
+	LList& operator= (const LList& l) {
+		if (this != &l) {
+			clear();
+			copy(l);
+		}
+		return *this;
+	}
+
+	~LList() { clear(); }
+
+	bool isEmpty() const { return head == nullptr && tail == nullptr; }
+
+	bool insertAfter(const T& newData, LListitererator<T> iter) {
+		// if the list is isEmpty
+		if (iter.ptr == nullptr && isEmpty()) {
+			head = new Node<T>(newData);
+			tail = head;
+			return true;
+		}
+		else if (!iter)
+			return false;
+
+		Node<T>* newElement = new Node<T>(newData, iter.ptr->next);
+		iter.ptr->next = newElement;
+		if (iter == end())
+			tail = newElement;
+		return true;
+	}
+
+	bool insertBefore(const T& newData, LListitererator<T> iter) {
+		// taking care of the cases in which:
+		// 1) iter is an itererator pointing to the first element in the list
+		// 2) when the list is isEmpty and iter is a nullptr itererator
+		if (iter == begin()) {
+			Node<T>* newElement = new Node<T>(newData, head);
+			if (isEmpty())
+				tail = newElement;
+			head = newElement;
+			return true;
+		}
+
+		if (!iter || isEmpty())
+			return false;
+
+		// the itererator is valid and the list is not isEmpty
+		// the itererator is not poitering to the first element
+		// the check for validitery will be delegated to insertAfter
+
+		return insertAfter(newData, findPrevious(iter));
+	}
+
+	bool deleteAfter(T& data, LListitererator<T> iter) {
+		if (!iter || iter == end() || isEmpty())
+			return false;
+
+		// iter is a valid itererator, iter is not pointing to the last element
+		// and there are at least 2 elements in the list
+
+		Node<T>* toDelete = iter.ptr->next;
+		iter.ptr->next = iter.ptr->next->next;
+		data = toDelete->data;
+		if (toDelete->next == nullptr)
+			tail = iter.ptr;
+		delete toDelete;
+		return true;
+	}
+
+	bool deleteAt(T& data, LListitererator<T> iter) {
+		if (!iter || isEmpty())
+			return false;
+
+		// I have to take care of the case in which iter == begin()
+		// the other cases will be taken care of by deleteAfter
+
+		if (iter == begin()) {
+			Node<T>* toDelete = head;
+			head = head->next;
+			if (head == nullptr)
+				tail = nullptr;
+			data = toDelete->data;
+			delete toDelete;
+			return true;
+		}
+
+		return deleteAfter(data, findPrevious(iter));
+	}
+
+	bool deleteBefore(T& data, LListitererator<T> iter) {
+		if (!iter || iter == begin() || isEmpty())
+			return false;
+
+		// iter is a valid itererator
+		// iter is not pointing to the first element in the list
+		// there are at least 2 elements in the list
+
+		deleteAt(data, findPrevious(iter));
+	}
+
+	T& getAt(LListitererator<T> iter) const { return iter.get(); }
+
+	void insertHead(const T& data) { insertBefore(data, begin()); }
+
+	void insertTail(const T& data) { insertAfter(data, end()); }
+
+	bool deleteHead(T& data) { return deleteAt(data, begin()); }
+
+	bool deleteTail(T& data) { return deleteAt(data, end()); }
+
+	LListitererator<T> begin() const { return LListitererator<T>(head); }
+
+	LListitererator<T> end() const { return LListitererator<T>(tail); }
+
+	LList& operator += (const T& newData) {
+		insertTail(newData);
+		return *this;
+	}
+
+	void print(ostream& out = cout) const {
 		out << '(';
-		for (LListIterator<T> iter = begin(); iter; ++iter) {
+		for (LListitererator<T> iter = begin(); iter; iter++) {
 			out << *iter;
-			if (iter != end()) {
+			if (iter != end())
 				out << ',';
-			}
 		}
-		out << ')';
-	}
-	void append(LList<T>&);
-	int length() const;
-	void reverse();
-	void unique();
-	void append(LList<T>&, const LList<T>&);
-	void reverse(LList<T>&);
-	void split(const LList<T>&, LList<T>&, LList<T>&);
-	LList<T> merge(const LList<T>&, const LList<T>&);
-	void mergeSort(LList<T>&);
-	
-
-	LListIterator<T> begin() const;
-	LListIterator<T> end() const;
-
-
-};
-
-
-/* ------ Private Methods --------- */
-template<typename T>
-void LList<T>::copy(const LList<T>& other) {
-	for (LListIterator<T> iter = other.begin(); iter; iter++) {
-		insertTail(*iter);
-	}
-}
-
-
-template<typename T>
-void LList<T>::clear() {
-	while (!empty()) {
-		T tmp;
-		deleteTail(tmp);
-	}
-}
-
-
-template<typename T>
-LListIterator<T> LList<T>::findPrevious(LListIterator<T> iter) {
-	LListIterator<T> prev = begin();
-
-	while (prev && prev.ptr->next != iter.ptr) {
-		prev++;
+		out << ')' << endl;
 	}
 
-	return prev;
-}
+	// appends the list sent as parameter to *this and turns the parameter into an isEmpty list
+	void append(LList& other) {
 
-
-/* ------- Public Methods --------- */
-template<typename T>
-LList<T>::LList() : head(nullptr), tail(nullptr) {}
-
-
-template<typename T>
-LList<T>::LList(const LList<T>& other) {
-	head = nullptr;
-	tail = nullptr;
-
-	copy(other);
-}
-
-
-template<typename T>
-LList<T>& LList<T>::operator=(const LList<T>& other) {
-	if (this != &other) {
-		clear();
-		copy(other);
-	}
-
-	return *this;
-}
-
-
-template<typename T>
-LList<T>::~LList() {
-	clear();
-}
-
-
-template<typename T>
-bool LList<T>::empty() const {
-	return (head == nullptr && tail == nullptr);
-}
-
-
-template<typename T>
-bool LList<T>::insertAfter(const T& newElem, LListIterator<T> iter) {
-
-	//checks if the given list is empty or not
-	if (iter.ptr == nullptr && empty()) {
-		head = new Node<T>(newElem);
-		tail = head;
-
-		return true;
-	}
-	else if(!iter){
-		return false;
-	}
-
-	Node<T>* toAdd = new Node<T>(newElem, iter.ptr->next);
-	iter.ptr->next = toAdd;
-	
-	if (iter == end()) {
-		tail = toAdd;
-	}
-
-	return true;
-}
-
-
-template<typename T>
-bool LList<T>::insertBefore(const T& newElem, LListIterator<T> iter) {
-	//checks if the iterator is pointing to the first element of the given list
-	if (iter == begin()) {
-		Node<T>* toAdd = new Node<T>(newElem, head);
-		
-		//checks if the given list is empty and when it is a nullpointer iterator
-		if (empty()) {
-			tail = toAdd;
+		if (!isEmpty()) {
+			tail->next = other.head;
+			if (!other.isEmpty())
+				tail = other.tail;
 		}
-		head = toAdd;
-		return true;
-	}
-
-	if (!iter || empty()) {
-		return false;
-	}
-
-	//Executing this when iterator is valid and our list is not empty.
-	//Also the iterator is not pointing to the first element.
-
-	return insertAfter(newElem, findPrevious(iter));
-}
-
-
-template<typename T>
-bool LList<T>::deleteAfter(T& toDel, LListIterator<T> iter) {
-	if (!iter || iter == end() || empty()) {
-		return false;
-	}
-
-	//when the iterator is valid -> is not pointing to the last element
-	//and there are at least two elements in the given list
-
-	Node<T>* tmpDel = iter.ptr->next;
-	iter.ptr->next = iter.ptr->next->next;
-	toDel = tmpDel;
-
-	if (tmpDel->next == nullptr) {
-		tail = iter.ptr;
-	}
-
-	delete tmpDel;
-
-	return true;
-}
-
-
-template<typename T>
-bool LList<T>::deleteAt(T& toDel, LListIterator<T> iter) {
-	if (!iter || empty()) {
-		return false;
-	}
-
-	if (iter == begin()) {
-		Node<T>* tmpDel = head;
-		head = head->next;
-
-		if (head == nullptr) {
-			tail = nullptr;
-		}
-
-		toDel = tmpDel->data;
-		delete tmpDel;
-		return true;
-	}
-
-	return deleteAfter(toDel, findPrevious(iter));
-}
-
-
-template<typename T>
-bool LList<T>::deleteBefore(T& toDel, LListIterator<T> iter) {
-	if (!iter || iter == begin() || empty) {
-		return false;
-	}
-
-	//It is a valid iterator
-	//Is is not pointing to the first element in the list
-	//There are at least two elements in the list
-
-	deleteAt(toDel, findPrevious(iter));
-}
-
-
-template<typename T>
-T& LList<T>::getAt(LListIterator<T> iter) const {
-	return (iter.get());
-}
-
-
-template<typename T>
-void LList<T>::insertBegin(const T& newElem) {
-	insertBefore(newElem, begin());
-}
-
-
-template<typename T>
-void LList<T>::insertTail(const T& newElem) {
-	insertAfter(newElem, end());
-}
-
-
-template<typename T>
-bool LList<T>::deleteBegin(T& toDel) {
-	return deleteAt(toDel, begin());
-}
-
-
-template<typename T>
-bool LList<T>::deleteTail(T& toDel) {
-	return deleteAt(toDel, end());
-}
-
-
-template<typename T>
-LList<T>& LList<T>::operator+=(const T& newData) {
-	insertTail(newData);
-	return *this;
-}
-
-
-template<typename T>
-void LList<T>::append(LList<T>& other) {
-	if (!empty()) {
-		tail->next = other.head;
-		if (!other.empty()) {
+		else {
+			head = other.head;
 			tail = other.tail;
 		}
-	}
-	else {
-		head = other.head;
-		tail = other.tail;
-	}
 
-	other.head = nullptr;
-	other.tail = nullptr;
-}
-
-
-template<typename T>
-int LList<T>::length() const {
-	int length = 0;
-	for (LListIterator<T> iter = begin(); iter; ++iter) {
-		length++;
+		other.head = nullptr;
+		other.tail = nullptr;
 	}
 
-	return length;
-}
-
-
-template<typename T>
-void LList<T>::reverse() {
-	if (empty() || head->next == nullptr) {
-		return;
+	int length() const {
+		int length = 0;
+		for (LListitererator<T> iter = begin(); iter; iter++)
+			length++;
+		return length;
 	}
 
-	Node<T>* prev = head;
-	Node<T>* nextElem = head->next;
-	tail = head;
-	tail->next = nullptr;
+	void reverse() {
+		if (isEmpty() || head->next == nullptr)
+			return;
 
-	while (nextElem != nullptr) {
-		head = nextElem;
-		nextElem = nextElem->next;
-		head->next = prev;
-		prev = head;
+		// there are at least 2 elements in the list
+		Node<T>* previous = head;
+		Node<T>* following = head->next;
+		tail = head;
+		tail->next = nullptr;
+
+		while (following != nullptr) {
+			head = following;
+			following = following->next;
+			head->next = previous;
+			previous = head;
+		}
 	}
-}
 
-
-template<typename T>
-void LList<T>::unique() { //A methods for removing duplicates and turning the list into a set
-	T helper;
-
-	for (LListIterator<T> firstIter = begin(); firstIter; ++firstIter) {
-		for (LListIterator<T> secondIter = firstIter; secondIter.next(); ) {
-			if (*firstIter == *(secondIter.next())) {
-				deleteAfter(helper, secondIter);
-			}
-			else {
-				secondIter++;
+	// removes duplicates and turns the list into a set
+	void unique() {
+		T data;
+		for (LListitererator<T> iter1 = begin(); iter1; iter1++) {
+			for (LListitererator<T> iter2 = iter1; iter2.next(); ) {
+				if (*iter1 == *(iter2.next()))
+					deleteAfter(data, iter2);
+				else
+					iter2++;
 			}
 		}
 	}
-}
+};
 
-
-template<typename T>
-void LList<T>::append(LList<T>& list1, const LList<T>& list2) {
-	for (LListIterator<T> iter = list2.begin(); iter; ++iter) {
+template <typename T>
+void append(LList<T>& list1, const LList<T>& list2) {
+	for (LListitererator<T> iter = list2.begin(); iter; iter++) {
 		list1 += *iter;
 	}
 }
 
+template <typename T>
+void reverse(LList<T>& ls) {
+	LListitererator<T> iter = ls.begin();
+	T data;
+	while (ls.deleteAfter(data, iter))
+		ls.insertHead(data);
+}
 
-template<typename T>
-void LList<T>::reverse(LList<T>& list) {
-	LListIterator<T> iter = list.begin();
-
-	T helper;
-
-	while (list.deleteAfter(helper, iter)) {
-		list.insertBegin(helper);
+template <typename T>
+void spliter(const LList<T>& ls, LList<T>& list1, LList<T>& list2) {
+	LList<T>* addNow = &list1;
+	LList<T>* addLater = &list2;
+	for (LListitererator<T> iter = ls.begin(); iter; iter++) {
+		(*addNow).insertTail(*iter);
+		swap(addNow, addLater);
 	}
 }
 
-
-template<typename T>
-void LList<T>::split(const LList<T>& list, LList<T>& list1, LList<T>& list2) {
-	LList<T>* addFirst = &list1;
-	LList<T>* addLast = &list2;
-
-	for (LListIterator<T> iter = list.begin(); iter; ++iter) {
-		(*addFirst).insertTail(*iter);
-		swap(addFirst, addLast);
-	}
-}
-
-
-template<typename T>
-LList<T> LList<T>::merge(const LList<T>& list1, const LList<T>& list2) {
+template <typename T>
+LList<T> merge(const LList<T>& list1, const LList<T>& list2) {
 	LList<T> sorted;
-	LListIterator<T> iter1 = list1.begin();
-	LListIterator<T> iter2 = list2.begin();
+	LListitererator<T> iter1 = list1.begin(), iter2 = list2.begin();
 
 	while (iter1 && iter2) {
 		if (*iter1 <= *iter2) {
@@ -413,115 +279,91 @@ LList<T> LList<T>::merge(const LList<T>& list1, const LList<T>& list2) {
 		sorted += *iter2;
 		iter2++;
 	}
-
 	return sorted;
 }
 
-
-template<typename T>
-void LList<T>::mergeSort(LList<T>& list) {
-	if (list.begin() == list.end()) {
+template <typename T>
+void mergeSort(LList<T>& ls) {
+	// if the list is isEmpty or contains only 1 element then iter is sorted
+	if (ls.begin() == ls.end())
 		return;
-	}
 
-	LList<T> list1;
-	LList<T> list2;
-
-	split(list, list1, list2);
+	LList<T> list1, list2;
+	spliter(ls, list1, list2);
 
 	mergeSort(list1);
 	mergeSort(list2);
 
-	list = merge(list1, list2);
+	ls = merge(list1, list2);
 }
 
-
-template<typename T>
-LListIterator<T> LList<T>::begin() const {
-	return LListIterator<T>(head);
-}
-
-
-template<typename T>
-LListIterator<T> LList<T>::end() const {
-	return LListIterator<T>(tail);
-}
-
-
-/* ------- Iterator -------*/
-template<typename T>
-class LListIterator {
+template <typename T>
+class LListitererator {
 private:
+
 	Node<T>* ptr;
+	// static T error;
 
 public:
-	/* ------ Public Iterator Methods -------- */
+
 	friend class LList<T>;
-	LListIterator(Node<T>* newPtr = nullptr) : ptr(newPtr) {}
-	LListIterator<T> next() const;
-	LListIterator<T> prev() const;
-	T& get() const;
-	bool valid() const;
-	bool operator==(const LListIterator<T>&) const;
-	bool operator!=(const LListIterator<T>&) const;
-	T& operator*() const;
-	LListIterator<T> operator++(int);
-	LListIterator<T>& operator++();
-	operator bool() {
-		return valid();
+
+	// construction from a ptr
+	LListitererator(Node<T>* p = nullptr) : ptr(p) {}
+
+	// next position
+	LListitererator next() const {
+		// assuming the itererator is valid
+		// if (!valid())
+		//  return *this;
+		return LListitererator(ptr->next);
 	}
+
+	// previous position
+	LListitererator prev() const;
+
+	// access to an element witerh a possibilitery of changing iter
+	T& get() const {
+		// assuming the itererator is valid
+		// if (!valid())
+		//  return error;
+		return ptr->data;
+	}
+
+	// access to an element witerhout a possibilitery of changing iter
+	const T& getConst() const {
+		// assuming the itererator is valid
+		// if (!valid())
+		//  return error;
+		return ptr->data;
+	}
+
+	// check for validitery
+	bool valid() const { return ptr != nullptr; }
+
+	// comparison of two itererators
+	bool operator==(const LListitererator& iter) const { return ptr == iter.ptr; }
+
+	bool operator!=(const LListitererator& iter) const { return !(*this == iter); }
+
+	// syntactic sugar
+
+	// *iter <-> iter.get()
+	T& operator*() const { return get(); }
+
+	// iter++ <-> iter = iter.next(), returns the old value of iter
+	LListitererator operator++(int) {
+		LListitererator old = *this;
+		*this = next();
+		return old;
+	}
+
+	// ++iter <-> iter = iter.next(), returns the new value of iter
+	LListitererator& operator++() {
+		*this = next();
+		return *this;
+	}
+
+	// iter <-> iter.valid()
+	operator bool() const { return valid(); }
 };
-
-
-/* -------- Public Iterator Methods ------- */
-template<typename T>
-LListIterator<T> LListIterator<T>::next() const {
-	return LListIterator(ptr->next);
-}
-
-
-template<typename T>
-T& LListIterator<T>::get() const {
-	return ptr->data;
-}
-
-
-template<typename T>
-bool LListIterator<T>::valid() const {
-	return (ptr != nullptr);
-}
-
-
-template<typename T>
-bool LListIterator<T>::operator==(const LListIterator<T>& iter) const{
-	return (ptr == iter.ptr);
-}
-
-
-template<typename T>
-bool LListIterator<T>::operator!=(const LListIterator<T>& iter) const {
-	return !(*this == iter);
-}
-
-
-template<typename T>
-T& LListIterator<T>::operator*() const {
-	return get();
-}
-
-
-template<typename T>
-LListIterator<T> LListIterator<T>::operator++(int) {
-	LListIterator prevData = *this;
-	*this = next();
-	
-	return prevData;
-}
-
-
-template<typename T>
-LListIterator<T>& LListIterator<T>::operator++() {
-	*this = next();
-	
-	return *this;
-}
