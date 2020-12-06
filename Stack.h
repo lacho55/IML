@@ -17,14 +17,14 @@ private:
 	/* ------- Private Methods ------ */
 	void copy(Node<T>*);
 	void eraseStack();
-	
+
 public:
 	/* ------- Public Methods ------- */
 	Stack();
 	Stack(const Stack<T>&);
 	Stack<T>& operator=(const Stack<T>&);
 	~Stack();
-	
+
 	void push(const T&);
 	bool empty() const;
 	T pop();
