@@ -1,137 +1,122 @@
 #pragma once
-#include<iostream>
 
-
-template<class T>
-struct Node {
+template <typename T>
+struct stackNode {
 	T data;
-	Node<T>* prev;
+	stackNode<T>* previous;
 };
 
-
-template<class T>
+template <typename T>
 class Stack {
 private:
-	Node<T>* top;
+	stackNode<T>* top;
 
-	/* ------- Private Methods ------ */
-	void copy(Node<T>*);
+	// copies a stack whose element on top is *toCopy
+	void copy(stackNode<T>* toCopy);
 	void eraseStack();
 
 public:
-	/* ------- Public Methods ------- */
+
 	Stack();
-	Stack(const Stack<T>&);
-	Stack<T>& operator=(const Stack<T>&);
+
+	Stack(const Stack&);
+
+	Stack& operator= (const Stack&);
+
 	~Stack();
 
 	void push(const T&);
-	bool empty() const;
+
 	T pop();
+
 	T& peek() const;
-	Stack<T>& operator+=(const T&);
+
+	bool empty() const;
+
+	Stack<T>& operator+= (const T& newData);
 };
 
+template <typename T>
+Stack<T>::Stack() : top(nullptr) {}
 
-/* -------- Pivate Methods ------- */
-template<typename T>
-void Stack<T>::copy(Node<T>* other) {
-	if (other == nullptr) {
-		return;
-	}
+template <typename T>
+bool Stack<T>::empty() const { return top == nullptr; }
 
-	//Copying all elements pushed before *other
-	copy(other->pev);
-
-	//Lastly we push our last element from the stack
-	push(other->data);
+template <typename T>
+void Stack<T>::push(const T& newData) {
+	stackNode<T>* newElement = new stackNode<T>;
+	(*newElement).data = newData;
+	newElement->previous = top;
+	top = newElement;
 }
 
-
-template<typename T>
-void Stack<T>::eraseStack() {
-	while (!empty()) {
-		pop();
-	}
-}
-
-
-/* -------- Public Methods -------*/
-template<typename T>
-Stack<T>::Stack() {
-	top = nullptr;
-}
-
-
-template<typename T>
-Stack<T>::Stack(const Stack<T>& other) {
-	copy(other.top);
-}
-
-
-template<typename T>
-Stack<T>& Stack<T>::operator=(const Stack<T>& other) {
-	if (this != &other) {
-		eraseStack();
-		copy(other.top);
-	}
-
-	return *this;
-}
-
-
-template<typename T>
-Stack<T>::~Stack() {
-	eraseStack();
-}
-
-
-template<typename T>
-void Stack<T>::push(const T& newElem) {
-	Node<T>* toAdd = new Node<T>;
-	(*toAdd).data = newElem;
-	toAdd->prev = top;
-	top = toAdd;
-}
-
-
-template<typename T>
-bool Stack<T>::empty() const {
-	return (top == nullptr);
-}
-
-
-template<typename T>
+template <typename T>
 T Stack<T>::pop() {
-
 	if (empty()) {
-		std::cout << "Sorry but the stack is already empty!" << std::endl;
+		std::cout << "Warning! The stack is already empty!\n";
 		return T();
 	}
 	else {
-		Node<T>* tmp = top;
-		top = tmp->prev;
+		stackNode<T>* temporary = top;
+		top = temporary->previous;
 
-		T finalData = tmp->data;
-		delete tmp;
-		return finalData;
+		T returnedData = temporary->data;
+		delete temporary;
+		return returnedData;
 	}
 }
 
-
-template<typename T>
+template <typename T>
 T& Stack<T>::peek() const {
 	if (empty()) {
-		std::cout << "Sorry but the stack is already empty!" << std::endl;
+		std::cout << "Warning! The stack is already empty!\n";
 		return T();
 	}
 
 	return top->data;
 }
 
+template <typename T>
+void Stack<T>::eraseStack() {
+	while (!empty())
+		pop();
+}
 
-template<typename T>
-Stack<T>& Stack<T>::operator+=(const T& newElem) {
-	push(newElem);
+template <typename T>
+Stack<T>::~Stack() {
+	eraseStack();
+}
+
+template <typename T>
+void Stack<T>::copy(stackNode<T>* toCopy) {
+
+	// base case
+	if (toCopy == nullptr)
+		return;
+
+	// first, we copy all elements pushed before *toCopy
+	copy(toCopy->previous);
+
+	// finally, we push the last element from the stack
+	push(toCopy->data);
+}
+
+template <typename T>
+Stack<T>& Stack<T>::operator= (const Stack<T>& ls) {
+	if (this != &ls) {
+		eraseStack();
+		copy(ls.top);
+	}
+	return *this;
+}
+
+template <typename T>
+Stack<T>::Stack(const Stack<T>& ls) : top(nullptr) {
+	copy(ls.top);
+}
+
+template <typename T>
+Stack<T>& Stack<T>::operator+= (const T& newData) {
+	push(newData);
 	return *this;
 }
