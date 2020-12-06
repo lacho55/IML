@@ -1,19 +1,23 @@
 #pragma once
 #include<string>
-#include"LList.h"
-#include"Tag.h"
+#include "LList.h"
+#include "Tag.h"
 
 class Parser
 {
 private:
-	LList<std::string> file;
+	LList<string> parserFile;
 	LList<Tag> parserTags;
+
+	/* ------- Private Methods ------- */
+	bool readFile(const char*);
 
 public:
 	/* ------- Constructor ------ */
 	Parser();
 
-	/* ------- File Reader ------ */
+	/* ------ Translation ----- */
 	void translate(const char*, const char*);
+
 };
 
