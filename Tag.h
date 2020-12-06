@@ -1,7 +1,6 @@
 #pragma once
 #include<string>
 
-
 class Tag
 {
 private:
@@ -11,7 +10,11 @@ private:
 
 public:
 	/* ------- Constructor ------- */
-	Tag(std::string, std::string, bool);
+	Tag(std::string newOperation = "", std::string newAttribute = "", bool newCheckForAttribute = false) {
+		operation = newOperation;
+		attribute = newAttribute;
+		checkForAttribute = newCheckForAttribute;
+	}
 
 	/* ------- Setters and Getters ----- */
 	const std::string getOperation() const;
@@ -21,6 +24,5 @@ public:
 	void setOperation(const std::string newOperation);
 	void setAttribute(const std::string newAttribute);
 	void setCheckForAttribute(const bool newCheckForAttribute);
-	
-};
 
+};

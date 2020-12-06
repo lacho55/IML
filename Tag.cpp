@@ -1,11 +1,5 @@
+#pragma once
 #include "Tag.h"
-
-/* ------ Constructor ------- */
-Tag::Tag(std::string newOperation = "", std::string newAttribute = "", bool newCheckForAttribute = false) {
-	operation = newOperation;
-	attribute = newAttribute;
-	checkForAttribute = newCheckForAttribute;
-}
 
 
 /* ------- Setters and Getters ------ */
