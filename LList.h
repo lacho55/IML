@@ -14,7 +14,7 @@ struct Node {
 };
 
 template <typename T>
-class LListitererator;
+class LListIterator;
 
 template <typename T>
 class LList {
@@ -23,7 +23,7 @@ private:
 	Node<T>* tail;
 
 	void copy(const LList& l) {
-		for (LListitererator<T> iter = l.begin(); iter; iter++)
+		for (LListIterator<T> iter = l.begin(); iter; iter++)
 			this->insertTail(*iter);
 	}
 
@@ -34,8 +34,8 @@ private:
 		}
 	}
 
-	LListitererator<T> findPrevious(LListitererator<T> iter) {
-		LListitererator<T> previous = begin();
+	LListIterator<T> findPrevious(LListIterator<T> iter) {
+		LListIterator<T> previous = begin();
 		while (previous && previous.ptr->next != iter.ptr)
 			previous++;
 		return previous;
@@ -59,7 +59,7 @@ public:
 
 	bool isEmpty() const { return head == nullptr && tail == nullptr; }
 
-	bool insertAfter(const T& newData, LListitererator<T> iter) {
+	bool insertAfter(const T& newData, LListIterator<T> iter) {
 		// if the list is isEmpty
 		if (iter.ptr == nullptr && isEmpty()) {
 			head = new Node<T>(newData);
@@ -76,7 +76,7 @@ public:
 		return true;
 	}
 
-	bool insertBefore(const T& newData, LListitererator<T> iter) {
+	bool insertBefore(const T& newData, LListIterator<T> iter) {
 		// taking care of the cases in which:
 		// 1) iter is an itererator pointing to the first element in the list
 		// 2) when the list is isEmpty and iter is a nullptr itererator
@@ -98,7 +98,7 @@ public:
 		return insertAfter(newData, findPrevious(iter));
 	}
 
-	bool deleteAfter(T& data, LListitererator<T> iter) {
+	bool deleteAfter(T& data, LListIterator<T> iter) {
 		if (!iter || iter == end() || isEmpty())
 			return false;
 
@@ -114,7 +114,7 @@ public:
 		return true;
 	}
 
-	bool deleteAt(T& data, LListitererator<T> iter) {
+	bool deleteAt(T& data, LListIterator<T> iter) {
 		if (!iter || isEmpty())
 			return false;
 
@@ -134,7 +134,7 @@ public:
 		return deleteAfter(data, findPrevious(iter));
 	}
 
-	bool deleteBefore(T& data, LListitererator<T> iter) {
+	bool deleteBefore(T& data, LListIterator<T> iter) {
 		if (!iter || iter == begin() || isEmpty())
 			return false;
 
@@ -145,7 +145,7 @@ public:
 		deleteAt(data, findPrevious(iter));
 	}
 
-	T& getAt(LListitererator<T> iter) const { return iter.get(); }
+	T& getAt(LListIterator<T> iter) const { return iter.get(); }
 
 	void insertHead(const T& data) { insertBefore(data, begin()); }
 
@@ -155,9 +155,9 @@ public:
 
 	bool deleteTail(T& data) { return deleteAt(data, end()); }
 
-	LListitererator<T> begin() const { return LListitererator<T>(head); }
+	LListIterator<T> begin() const { return LListIterator<T>(head); }
 
-	LListitererator<T> end() const { return LListitererator<T>(tail); }
+	LListIterator<T> end() const { return LListIterator<T>(tail); }
 
 	LList& operator += (const T& newData) {
 		insertTail(newData);
@@ -166,7 +166,7 @@ public:
 
 	void print(ostream& out = cout) const {
 		out << '(';
-		for (LListitererator<T> iter = begin(); iter; iter++) {
+		for (LListIterator<T> iter = begin(); iter; iter++) {
 			out << *iter;
 			if (iter != end())
 				out << ',';
@@ -193,7 +193,7 @@ public:
 
 	int length() const {
 		int length = 0;
-		for (LListitererator<T> iter = begin(); iter; iter++)
+		for (LListIterator<T> iter = begin(); iter; iter++)
 			length++;
 		return length;
 	}
@@ -219,8 +219,8 @@ public:
 	// removes duplicates and turns the list into a set
 	void unique() {
 		T data;
-		for (LListitererator<T> iter1 = begin(); iter1; iter1++) {
-			for (LListitererator<T> iter2 = iter1; iter2.next(); ) {
+		for (LListIterator<T> iter1 = begin(); iter1; iter1++) {
+			for (LListIterator<T> iter2 = iter1; iter2.next(); ) {
 				if (*iter1 == *(iter2.next()))
 					deleteAfter(data, iter2);
 				else
@@ -232,14 +232,14 @@ public:
 
 template <typename T>
 void append(LList<T>& list1, const LList<T>& list2) {
-	for (LListitererator<T> iter = list2.begin(); iter; iter++) {
+	for (LListIterator<T> iter = list2.begin(); iter; iter++) {
 		list1 += *iter;
 	}
 }
 
 template <typename T>
 void reverse(LList<T>& ls) {
-	LListitererator<T> iter = ls.begin();
+	LListIterator<T> iter = ls.begin();
 	T data;
 	while (ls.deleteAfter(data, iter))
 		ls.insertHead(data);
@@ -249,7 +249,7 @@ template <typename T>
 void spliter(const LList<T>& ls, LList<T>& list1, LList<T>& list2) {
 	LList<T>* addNow = &list1;
 	LList<T>* addLater = &list2;
-	for (LListitererator<T> iter = ls.begin(); iter; iter++) {
+	for (LListIterator<T> iter = ls.begin(); iter; iter++) {
 		(*addNow).insertTail(*iter);
 		swap(addNow, addLater);
 	}
@@ -258,7 +258,7 @@ void spliter(const LList<T>& ls, LList<T>& list1, LList<T>& list2) {
 template <typename T>
 LList<T> merge(const LList<T>& list1, const LList<T>& list2) {
 	LList<T> sorted;
-	LListitererator<T> iter1 = list1.begin(), iter2 = list2.begin();
+	LListIterator<T> iter1 = list1.begin(), iter2 = list2.begin();
 
 	while (iter1 && iter2) {
 		if (*iter1 <= *iter2) {
@@ -298,7 +298,7 @@ void mergeSort(LList<T>& ls) {
 }
 
 template <typename T>
-class LListitererator {
+class LListIterator {
 private:
 
 	Node<T>* ptr;
@@ -309,18 +309,18 @@ public:
 	friend class LList<T>;
 
 	// construction from a ptr
-	LListitererator(Node<T>* p = nullptr) : ptr(p) {}
+	LListIterator(Node<T>* p = nullptr) : ptr(p) {}
 
 	// next position
-	LListitererator next() const {
+	LListIterator next() const {
 		// assuming the itererator is valid
 		// if (!valid())
 		//  return *this;
-		return LListitererator(ptr->next);
+		return LListIterator(ptr->next);
 	}
 
 	// previous position
-	LListitererator prev() const;
+	LListIterator prev() const;
 
 	// access to an element witerh a possibilitery of changing iter
 	T& get() const {
@@ -342,9 +342,9 @@ public:
 	bool valid() const { return ptr != nullptr; }
 
 	// comparison of two itererators
-	bool operator==(const LListitererator& iter) const { return ptr == iter.ptr; }
+	bool operator==(const LListIterator& iter) const { return ptr == iter.ptr; }
 
-	bool operator!=(const LListitererator& iter) const { return !(*this == iter); }
+	bool operator!=(const LListIterator& iter) const { return !(*this == iter); }
 
 	// syntactic sugar
 
@@ -352,14 +352,14 @@ public:
 	T& operator*() const { return get(); }
 
 	// iter++ <-> iter = iter.next(), returns the old value of iter
-	LListitererator operator++(int) {
-		LListitererator old = *this;
+	LListIterator operator++(int) {
+		LListIterator old = *this;
 		*this = next();
 		return old;
 	}
 
 	// ++iter <-> iter = iter.next(), returns the new value of iter
-	LListitererator& operator++() {
+	LListIterator& operator++() {
 		*this = next();
 		return *this;
 	}
