@@ -12,6 +12,14 @@ private:
 public:
 	/* ------- Public Methods and Constructors ------- */
 	Operation();
-	Operation(std::string, std::string);
+	Operation(std::string newOperation, std::string newAttribute = "");
+
+	void addToList(double);
+	void appendList(LList<double>&);
+
 };
 
+
+/* -------- External Functions ------- */
+double add(double, double);
+double mul(double, double);
