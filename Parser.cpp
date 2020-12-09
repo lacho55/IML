@@ -7,6 +7,20 @@
 
 
 /* ------- Private Methods -------- */
+//A method for checking wether a tag is valid or not
+bool Parser::isValidTag(const Tag& givenTag) {
+
+	for (LListIterator<Tag> iter = parserTags.begin(); iter; ++iter) {
+
+		if (givenTag.getOperation() == (*iter).getOperation()
+			&& givenTag.getCheckForAttribute() == (*iter).getCheckForAttribute()) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 //A method for checking wether all the tags are nested correctly
 //and makes sure that all of them are from the IML
 bool Parser::isValidExpression(const LListIterator<std::string>& iter) {
@@ -25,12 +39,47 @@ bool Parser::isValidExpression(const LListIterator<std::string>& iter) {
 
 			//Before continuing we have to make sure wether there is an attribute or not
 			if ((*iter)[i] != '>') {
-				//to do read Attribute;
+				attribute = readAttribute(iter, i);
+				Tag openTag(operation, attribute, true);
+				
+				if (!isValidTag(openTag)) {
+					return false;
+				}
+
+				storage.push(openTag);
+				//Increasing it only just to get after closing quoatation mark
+				//i will also be incremented once at the end of the iteration(attribute ="")
+				i++;
+			}
+			else {
+				//Assuming the tag does not have any attributes
+				Tag openTag(operation);
+				if (!isValidTag(openTag)) {
+					return false;
+				}
+
+				storage.push(openTag);
+			}
+		}
+
+		//Getting to the closing tags
+		if ((*iter)[i] == '<' && (*iter)[i + 1] == '/') {
+			if (storage.empty()) {
+				return false;
 			}
 
+			operation = readClosingTag(iter, i);
+			Tag closeTag(operation);
+			Tag toCompareTag = storage.pop();
+
+			if (closeTag.getOperation() != toCompareTag.getOperation()) {
+				return false;
+			}
 		}
 
 	}
+
+	return (storage.empty());
 }
 
 
@@ -51,6 +100,62 @@ std::string Parser::readOpeningTag(const LListIterator<std::string>& iter, size_
 }
 
 
+std::string Parser::readClosingTag(const LListIterator<std::string>& iter, size_t& rowIndex) {
+	
+	std::string operationToReturn;
+	rowIndex++; // In order to get after <
+	rowIndex++; // In order to get after /
+
+	while ((*iter)[rowIndex] != '>') {
+		operationToReturn += (*iter)[rowIndex];
+		rowIndex++;
+	}
+
+	return operationToReturn;
+}
+
+
+//A method for reading tag's attributes
+std::string Parser::readAttribute(const LListIterator<std::string>& iter, size_t& rowIndex) {
+	
+	std::string attributeToReturn;
+	rowIndex++;//just to skip the interval
+	rowIndex++;//in order to get to the first quotation mark
+
+	while ((*iter)[rowIndex] != '\"') {
+		attributeToReturn += (*iter)[rowIndex];
+		rowIndex++;
+	}
+
+	return attributeToReturn;
+}
+
+
+//A method for reading number data from the file
+double Parser::readNumber(const LListIterator<std::string>& iter, size_t& rowIndex) {
+
+	double number;
+	std::stringstream sData;
+
+	while ((*iter)[rowIndex] != ' ' && (*iter)[rowIndex] != '<') {
+		sData << (*iter)[rowIndex];
+		rowIndex++;
+	}
+
+	sData >> number;
+
+	// i can be positioned on an interval or on a '<'
+	// if it is positioned on '<' there will be a big problem
+	// because at the end of the loop i will be incremented once
+	// and the following tag won't be read
+	if ((*iter)[rowIndex] == '<') {
+		rowIndex++;
+	}
+
+	return number;
+}
+
+
 //A method for checking wether the given expression from the intput file
 //is valid or not and of course returns the text that has to be written.
 std::string Parser::processExpression(const LListIterator<std::string>& iter) {
@@ -59,6 +164,15 @@ std::string Parser::processExpression(const LListIterator<std::string>& iter) {
 
 	
 	return processedLine;
+}
+
+
+std::string Parser::parse(const LListIterator<std::string>& iter) {
+	
+	// to do
+	std::string da;
+
+	return da;
 }
 
 
@@ -123,7 +237,7 @@ void Parser::translate(const char* inputFile, const char* outputFile) {
 		return;
 	}
 
-	std:string outputRow;
+	std::string outputRow;
 	std::ofstream fileStream(outputFile, std::ios::out | std::ios::trunc);
 
 	if (!fileStream.is_open()) {
@@ -132,7 +246,7 @@ void Parser::translate(const char* inputFile, const char* outputFile) {
 	}
 
 	for (LListIterator<std::string> iter = parserFile.begin(); iter; ++iter) {
-		//// To do .... processing
+		outputRow = processExpression(iter);
 		fileStream << outputRow << '\n';
 	}
 
