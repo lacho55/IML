@@ -7,7 +7,13 @@ class Operation
 private:
 	LList<double> list;
 	Tag operation;
-	bool operationDone;
+	bool operationDone; //It acts like a switch depending on operation's execution
+
+	/* ------ Private Methods ------- */
+	void applyMAP();
+	void applyAGG();
+	void applySRT();
+
 
 public:
 	/* ------- Public Methods and Constructors ------- */
@@ -16,6 +22,10 @@ public:
 
 	void addToList(double);
 	void appendList(LList<double>&);
+	void applyGivenOperation();
+
+	LList<double> getResAsList();
+	std::string getResAsString();
 
 };
 
