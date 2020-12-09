@@ -10,9 +10,18 @@ private:
 	LList<Tag> parserTags;
 
 	/* ------- Private Methods ------- */
+	bool isValidTag(const Tag&);
 	bool isValidExpression(const LListIterator<std::string>&);
+
 	std::string readOpeningTag(const LListIterator<std::string>&, size_t&);
+	std::string readClosingTag(const LListIterator<std::string>&, size_t&);
+	std::string readAttribute(const LListIterator<std::string>&, size_t&);
+
+	double readNumber(const LListIterator<std::string>&, size_t&);
+
 	std::string processExpression(const LListIterator<std::string>&);
+	std::string parse(const LListIterator<std::string>&);
+
 	bool readFile(const char*);
 
 public:
