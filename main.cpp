@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <iostream>
-#include"Parser.h"
+//#include"Parser.h"
 
 int main()
 {
