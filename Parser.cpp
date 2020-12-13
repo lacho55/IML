@@ -162,6 +162,12 @@ std::string Parser::processExpression(const LListIterator<std::string>& iter) {
 
 	std::string processedLine;
 
+	if (!isValidExpression(iter)) {
+		processedLine = "The line from the input file is invalid!";
+	}
+	else {
+		processedLine = parse(iter);
+	}
 	
 	return processedLine;
 }
