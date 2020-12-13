@@ -1,5 +1,6 @@
 #pragma once
 #include "Parser.h"
+#include "Operation.h"
 #include "Stack.h"
 #include<iostream>
 #include<fstream>
@@ -175,10 +176,67 @@ std::string Parser::processExpression(const LListIterator<std::string>& iter) {
 
 std::string Parser::parse(const LListIterator<std::string>& iter) {
 	
-	// to do
-	std::string da;
+	Stack<Operation> storage;
+	std::string operation;
+	std::string attribute;
+	double num;
+	size_t iterLength = (*iter).length();
 
-	return da;
+
+	for (size_t i = 0; i < iterLength; i++) {
+
+		//checks for opening tags
+		if ((*iter)[i] == '<' && (*iter)[i + 1] != '/') {
+
+			//taking the type of operation
+			operation = readOpeningTag(iter, i);
+
+			//So now, lets check for any attributes
+			if ((*iter)[i] != '>') {
+
+				attribute = readAttribute(iter, i);
+				Operation list(operation, attribute);
+				storage.push(list);
+				i++;
+				//Again, we dont need to get after the '>', only after the closing quoatation mark
+				// i will be incremented once at the end of the iteration
+				
+			}
+			else {
+				//Taking care of the case when we don't have any attributes
+				Operation list(operation);
+				storage.push(list);
+			}
+		}
+
+		//Next step is reding the numeric data from the line
+		if ((*iter)[i] == '-' || '0' <= (*iter)[i] && (*iter)[i] <= '9') {
+
+			num = readNumber(iter, i);
+			storage.peek().addToList(num);
+		}
+
+		//Lets take care of the closing tags
+		if ((*iter)[i] == '<' && (*iter)[i + 1] == '/') {
+			//If the expression is valid the operation that will be
+			//executed will be on the top of the storage
+
+			// we are reading the operation in order to move i on '>'
+			operation = readClosingTag(iter, i);
+			Operation currOperation = storage.pop();
+			currOperation.applyGivenOperation();
+
+			if (storage.empty()) {
+				return currOperation.getResAsString();
+			}
+			else {
+				//Ask....
+				LList<double> returnAsList = currOperation.getResAsList();
+				storage.peek().appendList(returnAsList);
+			}
+		}
+
+	}
 }
 
 
