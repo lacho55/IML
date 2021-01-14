@@ -1,14 +1,16 @@
-﻿#pragma once
 #include <iostream>
-//#include"Parser.h"
-
-int main()
-{
-	
-	
-
-	std::cout << "Hello World!\n";
+#include "Logo.h"
+#include "Tests.h"
 
 
+int main() {
+	logoScreen();
+	testTranslation();
+	testMapOperations();
+	//testAggregateOperations();
+	//testSortingOperations();
+
+
+	system("pause>0");
 	return 0;
 }
