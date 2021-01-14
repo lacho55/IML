@@ -1,18 +1,18 @@
 #pragma once
 
 template <typename T>
-struct stackNode {
+struct StackElement {
 	T data;
-	stackNode<T>* previous;
+	StackElement* previous;
 };
 
 template <typename T>
 class Stack {
 private:
-	stackNode<T>* top;
+	StackElement<T>* top;
 
 	// copies a stack whose element on top is *toCopy
-	void copy(stackNode<T>* toCopy);
+	void copy(StackElement<T>* toCopy);
 	void eraseStack();
 
 public:
@@ -44,7 +44,7 @@ bool Stack<T>::empty() const { return top == nullptr; }
 
 template <typename T>
 void Stack<T>::push(const T& newData) {
-	stackNode<T>* newElement = new stackNode<T>;
+	StackElement<T>* newElement = new StackElement<T>;
 	(*newElement).data = newData;
 	newElement->previous = top;
 	top = newElement;
@@ -57,7 +57,7 @@ T Stack<T>::pop() {
 		return T();
 	}
 	else {
-		stackNode<T>* temporary = top;
+		StackElement<T>* temporary = top;
 		top = temporary->previous;
 
 		T returnedData = temporary->data;
@@ -88,7 +88,7 @@ Stack<T>::~Stack() {
 }
 
 template <typename T>
-void Stack<T>::copy(stackNode<T>* toCopy) {
+void Stack<T>::copy(StackElement<T>* toCopy) {
 
 	// base case
 	if (toCopy == nullptr)
